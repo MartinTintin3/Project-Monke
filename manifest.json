@@ -3,8 +3,22 @@
 	"description": "Monke sus",
 	"version": "1.0",
 	"manifest_version": 3,
-	"permissions": ["debugger", "storage"],
+	"permissions": ["debugger", "storage", "tabs"],
 	"action": {
-		"default_popup": "popup.html"
-	}
+		"default_popup": "popup.html",
+		"default_title": "Project Monke",
+		"default_icon": { 
+			"32": "icon32.png",
+			"16": "icon16.png"
+		}
+	},
+	"background": {
+		"service_worker": "background.js"
+	},
+	"content_scripts": [
+		{
+			"matches": ["https://monkeytype.com/"],
+			"js": ["main.js"]
+		}
+	]
 }
