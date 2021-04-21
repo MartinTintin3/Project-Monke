@@ -2,5 +2,9 @@
 	"name": "Project Monkey",
 	"description": "Monke sus",
 	"version": "1.0",
-	"manifest_version": 3
+	"manifest_version": 3,
+	"permissions": ["debugger", "storage"],
+	"action": {
+		"default_popup": "popup.html"
+	}
 }
