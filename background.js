@@ -2,12 +2,13 @@ chrome.storage.sync.set({
 	"target": 0,
 });
 
-chrome.tabs.onHighlighted.addListener((tabId, windowId) => {
+const attach_and_detach = (tabId) => {
 	chrome.tabs.query({
 		url: "https://monkeytype.com/"
 	}, tabs => {
 		const tab = tabs.find(t => t.id == tabId.tabIds[0]);
 		if(tab) {
+			console.log(tab);
 			const onDebuggerEnabled = (debuggeeId) => {
 				debuggerEnabled = true
 			}
@@ -37,17 +38,22 @@ chrome.tabs.onHighlighted.addListener((tabId, windowId) => {
 			}));
 		}
 	});
-});
+}
+
+chrome.tabs.onCreated.addListener(() => console.log("created"));
+chrome.webNavigation.onCompleted.addListener(({ tabId }) => attach_and_detach(tabId))
+chrome.tabs.onHighlighted.addListener((tabId, windowId) => attach_and_detach(tabId));
+let interval = 0;
 
 chrome.runtime.onConnect.addListener(port => {
 	console.assert(port.name == "hack");
 	port.onMessage.addListener(msg => {
 		console.log(msg);
 		chrome.storage.sync.get("target", data => {
-			console.log(data);
 			if(data != 0) {
+				if(interval != 0) clearInterval(interval);
 				let index = 0;
-				const interval = setInterval(() => {
+				interval = setInterval(() => {
 					if(index == msg.letters.length) return clearInterval(interval);
 					chrome.debugger.sendCommand({
 						tabId: data.target
@@ -59,10 +65,15 @@ chrome.runtime.onConnect.addListener(port => {
 						modifiers: 0
 					}, e => {
 						if(chrome.runtime.lastError) console.log(chrome.runtime.lastError);
+						if(chrome.runtime.lastError.startsWith("Debugger is not attached to the tab")) clearInterval(interval);
 					});
 					index++;
-				}, 100);
+				}, 50);
 			}
 		});
 	});
+
+	port.onDisconnect.addListener(() => {
+		clearInterval(interval);
+	})
   });
