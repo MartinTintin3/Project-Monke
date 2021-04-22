@@ -8,9 +8,25 @@
 	</head>
 	<body>
 		<h2>Project Monke</h2>
-		<div class="option" id="test-option">
-			<input type="range" name="interval" id="interval-range" min="10" max="2000" value="500">
-			<label for="interval">Interval: <span id="interval-value">500</span>ms</label>
+		<div id="options">
+			<div id="method-option" class="option-section">
+				<label for="method">Hack Type: </label>
+				<div id="set" class="method-option">
+					<input type="radio" name="method" class="method-radio" id="method-radio-set" value="set">
+					<label for="set">Set Interval</label>
+				</div>
+				<div id="natural" class="method-option">
+					<input type="radio" name="method" class="method-radio" id="method-radio-natural" value="natural">
+					<label for="natural">Natural Typing</label>
+				</div>
+			</div>
+			<div id="method-config-set" class="method-config">
+				<input type="range" name="interval" id="interval-range" min="10" max="2000" value="500">
+				<label for="interval">Interval: <span id="interval-value">500</span>ms</label>
+			</div>
+			<div id="method-config-natural" class="method-config hidden">
+
+			</div>
 		</div>
 		<script src="popup.js"></script>
 	</body>

@@ -1,3 +1,11 @@
 * {
 	margin: 5px;
 }
+
+.hidden {
+	display: none;
+}
+
+.method-option {
+	display: flex;
+}
