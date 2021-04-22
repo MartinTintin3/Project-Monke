@@ -1,13 +1,18 @@
-const testOption = document.getElementById("test-checkbox");
-const checkButton = document.getElementById("check-button");
-
-testOption.addEventListener('change', () => {
-	if(chrome.runtime.error) return;
-	chrome.storage.sync.set({"data": testOption.checked});
+const intervalRange = document.getElementById("interval-range");
+chrome.storage.sync.get("interval", data => {
+	intervalRange.value = parseInt(data.interval);
+	document.getElementById("interval-value").innerText =  parseInt(data.interval);
 });
 
-checkButton.addEventListener('click', () => {
-	chrome.storage.sync.get("data", data => {
-		console.log(data);
+
+intervalRange.addEventListener('input', () => {
+	document.getElementById("interval-value").innerText = intervalRange.value;
+	chrome.storage.sync.set({
+		"interval": parseInt(intervalRange.value),
 	});
+	const port = chrome.runtime.connect({name: "hack"});
+	port.postMessage({
+		type: "interval",
+		value: parseInt(intervalRange.value)
+	})
 });

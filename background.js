@@ -43,37 +43,45 @@ const attach_and_detach = (tabId) => {
 chrome.tabs.onCreated.addListener(() => console.log("created"));
 chrome.webNavigation.onCompleted.addListener(({ tabId }) => attach_and_detach(tabId))
 chrome.tabs.onHighlighted.addListener((tabId, windowId) => attach_and_detach(tabId));
-let interval = 0;
+let timeout = 0;
+let delay = 500;
 
 chrome.runtime.onConnect.addListener(port => {
 	console.assert(port.name == "hack");
 	port.onMessage.addListener(msg => {
-		console.log(msg);
-		chrome.storage.sync.get("target", data => {
-			if(data != 0) {
-				if(interval != 0) clearInterval(interval);
-				let index = 0;
-				interval = setInterval(() => {
-					if(index == msg.letters.length) return clearInterval(interval);
-					chrome.debugger.sendCommand({
-						tabId: data.target
-					}, "Input.dispatchKeyEvent", {
-						type: "keyDown",
-						text: msg.letters[index],
-						key: msg.letters[index],
-						code: `Key${msg.letters[index].toUpperCase()}`,
-						modifiers: 0
-					}, e => {
-						if(chrome.runtime.lastError) console.log(chrome.runtime.lastError);
-						if(chrome.runtime.lastError.startsWith("Debugger is not attached to the tab")) clearInterval(interval);
-					});
-					index++;
-				}, 50);
-			}
-		});
-	});
+		if(msg.type == "letters") {
+			clearTimeout(timeout);
+			chrome.storage.sync.get("target", data => {
+				if(data != 0) {
+					let index = 0;
+					const sendKey = () => {
+						timeout = setTimeout(() => {
+							if(index == msg.letters.length) return clearTimeout(timeout);
+							console.log(msg.letters[index]);
+							chrome.debugger.sendCommand({
+								tabId: data.target
+							}, "Input.dispatchKeyEvent", {
+								type: "keyDown",
+								text: msg.letters[index],
+								key: msg.letters[index],
+								code: `Key${msg.letters[index].toUpperCase()}`,
+								modifiers: 0
+							}, e => {
+								if(chrome.runtime.lastError) console.log(chrome.runtime.lastError);
+								if(chrome.runtime.lastError.startsWith("Debugger is not attached to the tab")) clearInterval(interval);
+							});
+							index++;
+							sendKey();
+						}, delay);
+					}
 
-	port.onDisconnect.addListener(() => {
-		clearInterval(interval);
-	})
+					sendKey();
+				}
+			});
+		} else if(msg.type == "stop") {
+			clearTimeout(timeout);
+		} else if(msg.type == "interval") {
+			delay = msg.value;
+		}
+	});
   });

@@ -3,9 +3,14 @@ window.onload = () => {
 		let letters = Array.from(document.getElementById("words").children).map(word => Array.from(word.children).map(l => l.innerText)).map(w => w.join("")).join(" ").split("");
 		const restartButton = document.getElementById("restartTestButton");
 		console.log(letters[0]);
-	
-		var port = chrome.runtime.connect({name: "hack"});
+		chrome.storage.sync.set({
+			"interval": 500,
+		});
+
+		let port;
+		port = chrome.runtime.connect({name: "hack"});
 		port.postMessage({
+			type: "letters",
 			letters
 		});
 		port.onMessage.addListener(msg => {
@@ -13,13 +18,23 @@ window.onload = () => {
 		});
 
 		restartButton.addEventListener("click", () => {
-			port.disconnect();
 			setTimeout(() => {
 				letters = Array.from(document.getElementById("words").children).map(word => Array.from(word.children).map(l => l.innerText)).map(w => w.join("")).join(" ").split("");
 				port.postMessage({
+					type: "letters",
 					letters
 				});
+				port.onMessage.addListener(msg => {
+					console.log(msg);
+				});
 			}, 1000);
+		});
+
+		document.getElementById("words").addEventListener("click", e => {
+			console.log("words");
+			port.postMessage({
+				type: "stop"
+			});
 		});
 		/* chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 			chrome.debugger.sendCommand({
